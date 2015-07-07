@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="character_names">
+        <item>Aladdin</item>
+        <item>Ariel</item>
+        <item>Elsa</item>
+        <item>Flynn</item>
+        <item>Jasmine</item>
+        <item>Alternate Jasmine</item>
+        <item>Kagami</item>
+        <item>Kuroko</item>
+    </string-array>
+    <array name="character_icons">
+        <item>@drawable/thumb_aladdin</item>
+        <item>@drawable/thumb_ariel</item>
+        <item>@drawable/thumb_elsa</item>
+        <item>@drawable/thumb_flynn</item>
+        <item>@drawable/thumb_jasmine</item>
+        <item>@drawable/thumb_jasmine_alt</item>
+        <item>@drawable/thumb_kagami</item>
+        <item>@drawable/thumb_kuroko</item>
+    </array>
+</resources>
