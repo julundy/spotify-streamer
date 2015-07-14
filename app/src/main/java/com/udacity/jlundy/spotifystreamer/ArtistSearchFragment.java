@@ -81,7 +81,7 @@ public class ArtistSearchFragment extends Fragment {
 
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
 
-                ArtistTracksFragment fragment = (ArtistTracksFragment) fragmentManager.findFragmentByTag(FRAGMENT_TAG);
+                ArtistTracksFragment fragment = (ArtistTracksFragment) fragmentManager.findFragmentByTag(ArtistTracksFragment.FRAGMENT_TAG);
 
                 Bundle bundle = new Bundle();
                 bundle.putString(ArtistSearchFragment.ARTIST_ID, artist.getArtistId());
@@ -90,14 +90,20 @@ public class ArtistSearchFragment extends Fragment {
                     fragment = new ArtistTracksFragment();
                     fragment.setArguments(bundle);
                 } else {
-                    fragment.updateArtist(bundle);
+                    fragment.updateTracks(bundle);
                 }
 
-                fragmentManager.beginTransaction().replace(R.id.container, fragment, FRAGMENT_TAG).commit();
+                fragmentManager.beginTransaction().replace(R.id.container, fragment, ArtistTracksFragment.FRAGMENT_TAG).addToBackStack(null).commit();
             }
         });
 
         return rootView;
+    }
+
+    public void updateArtist(Bundle bundle) {
+        String query = bundle.getString(ArtistSearchActivity.QUERY_STRING);
+        GetArtistsTask getArtistsTask = new GetArtistsTask();
+        getArtistsTask.execute(query);
     }
 
     public class GetArtistsTask extends AsyncTask<String, Void, ArrayList<MyArtist>> {

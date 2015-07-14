@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
  */
 public class ArtistTracksFragment extends Fragment {
     private final String LOG_TAG = ArtistTracksFragment.class.getSimpleName();
+    public static final String FRAGMENT_TAG = "TRACKS_FRAGMENT";
 
     private String artistId;
     ArrayList<MyTrack> myTracks;
@@ -75,7 +77,7 @@ public class ArtistTracksFragment extends Fragment {
         return rootView;
     }
 
-    public void updateArtist(Bundle bundle) {
+    public void updateTracks(Bundle bundle) {
         artistId = bundle.getString(ArtistSearchFragment.ARTIST_ID);
         GetTracksTask getTracksTask = new GetTracksTask();
         getTracksTask.execute(artistId);
@@ -119,10 +121,17 @@ public class ArtistTracksFragment extends Fragment {
         protected void onPostExecute(ArrayList<MyTrack> tracks) {
             super.onPostExecute(tracks);
 
-            mTracksAdapter.addAll(tracks);
-            mTracksAdapter.notifyDataSetChanged();
-            myTracks = tracks;
-            //listView.setAdapter(mTracksAdapter);
+            if (tracks != null) {
+                if (tracks.isEmpty()) {
+                    Toast.makeText(getActivity(), "No tracks found!", Toast.LENGTH_SHORT).show();
+                } else {
+                    myTracks = tracks;
+                    mTracksAdapter.addAll(tracks);
+                    mTracksAdapter.notifyDataSetChanged();
+                }
+            } else {
+                Toast.makeText(getActivity(), "No connection!", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
