@@ -10,6 +10,11 @@ public class MyTrack implements Parcelable {
     public String trackName;
     public String albumName;
     public String imageUrl;
+    public String trackUrl;
+
+    public String getTrackUrl() { return trackUrl; }
+
+    public void setTrackUrl(String trackUrl) { this.trackUrl = trackUrl; }
 
     public String getTrackName() {
         return trackName;
@@ -35,17 +40,19 @@ public class MyTrack implements Parcelable {
         this.imageUrl = imageUrl;
     }
 
-    public MyTrack (String albumName, String trackName, String imageUrl) {
+    public MyTrack (String albumName, String trackName, String imageUrl, String trackUrl) {
         super();
         this.albumName = albumName;
         this.trackName = trackName;
         this.imageUrl = imageUrl;
+        this.trackUrl = trackUrl;
     }
 
     protected MyTrack(Parcel in) {
         albumName = in.readString();
         trackName = in.readString();
         imageUrl = in.readString();
+        trackUrl = in.readString();
     }
 
     public static final Creator<MyTrack> CREATOR = new Creator<MyTrack>() {
@@ -70,5 +77,6 @@ public class MyTrack implements Parcelable {
         dest.writeString(albumName);
         dest.writeString(trackName);
         dest.writeString(imageUrl);
+        dest.writeString(trackUrl);
     }
 }

@@ -3,10 +3,12 @@ package com.udacity.jlundy.spotifystreamer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -24,13 +26,14 @@ import kaaes.spotify.webapi.android.models.Tracks;
  * Created by jlundy on 7/10/15.
  */
 public class ArtistTracksFragment extends Fragment {
+
     private final String LOG_TAG = ArtistTracksFragment.class.getSimpleName();
-    public static final String FRAGMENT_TAG = "TRACKS_FRAGMENT";
+    static public final String FRAGMENT_TAG = "TRACKS_FRAGMENT";
+    static public final String TRACK_ID = "TRACK_ID";
 
     private String artistId;
     ArrayList<MyTrack> myTracks;
     TrackListAdapter mTracksAdapter;
-    ListView listView;
 
     public ArtistTracksFragment() {
     }
@@ -55,7 +58,6 @@ public class ArtistTracksFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.fragment_top_tracks, container, false);
 
         myTracks = new ArrayList<MyTrack>();
@@ -70,10 +72,41 @@ public class ArtistTracksFragment extends Fragment {
             mTracksAdapter.notifyDataSetChanged();
         }
 
-        listView = (ListView) rootView.findViewById(
-                R.id.list_view_tracks);
+        ListView listView;
+
+        listView = (ListView) rootView.findViewById(R.id.list_view_tracks);
 
         listView.setAdapter(mTracksAdapter);
+
+        //TODO Set listener for each track to call a dialogue fragment for the track player
+        //TODO Add URL to MyTrack class
+        //TODO use URL to use mediaPlayer in the player dialog
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //Copied over from ArtistSearchFragment
+                MyTrack track = mTracksAdapter.getItem(position);
+
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+
+                TrackDialogFragment fragment = (TrackDialogFragment) fragmentManager.findFragmentByTag(TrackDialogFragment.FRAGMENT_TAG);
+
+                Bundle bundle = new Bundle();
+                bundle.putParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY, mTracksAdapter.tracks);
+                bundle.putInt(TrackDialogFragment.CURRENT_TRACK_POSITION_KEY, position);
+
+                if (fragment == null) {
+                    fragment = new TrackDialogFragment();
+                    fragment.setArguments(bundle);
+                } else {
+                    fragment.updateTrack(bundle);
+                }
+
+                fragmentManager.beginTransaction().replace(R.id.container, fragment, TrackDialogFragment.FRAGMENT_TAG).addToBackStack(null).commit();
+            }
+        });
+
         return rootView;
     }
 
@@ -109,7 +142,8 @@ public class ArtistTracksFragment extends Fragment {
                     } else {
                         newImageUrl = "https://rogueamoeba.com/support/knowledgebase/images/spotify128.png";
                     }
-                    MyTrack newTrack = new MyTrack(newAlbumName, newTrackName, newImageUrl);
+                    String newTrackUrl = track.href;
+                    MyTrack newTrack = new MyTrack(newAlbumName, newTrackName, newImageUrl, newTrackUrl);
 
                     returnTracks.add(newTrack);
                 }
