@@ -1,9 +1,16 @@
 package com.udacity.jlundy.spotifystreamer;
 
+import android.app.DialogFragment;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,7 +24,7 @@ import kaaes.spotify.webapi.android.models.Track;
 /**
  * Created by jlundy on 8/18/15.
  */
-public class TrackDialogFragment extends Fragment {
+public class TrackDialogFragment extends DialogFragment {
     private final String LOG_TAG = TrackDialogFragment.class.getSimpleName();
     public static final String TRACK_ARRAY_KEY = "TRACK_ARRAY_KEY";
     public static final String CURRENT_TRACK_POSITION_KEY = "CURRENT_TRACK_POSITION_KEY";
@@ -38,11 +45,11 @@ public class TrackDialogFragment extends Fragment {
         player = new MediaPlayer();
 
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setDataSource(url);
-        player.prepare(); // might take long! (for buffering, etc)
+        //player.setDataSource(url);
+        //player.prepare(); // might take long! (for buffering, etc)
         player.start();
 
-        updateTrack();
+        //updateTrack();
 
         //TODO Using this as a template
         if (savedInstanceState != null) {
@@ -53,9 +60,9 @@ public class TrackDialogFragment extends Fragment {
             if (getArguments() != null) {
                 myTracks = getArguments().getParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY);
                 currentTrackPosition = getArguments().getInt(TrackDialogFragment.CURRENT_TRACK_POSITION_KEY);
-                artistId = getArguments().getString(ArtistSearchFragment.ARTIST_ID);
-                GetTracksTask getTracksTask = new GetTracksTask();
-                getTracksTask.execute(artistId);
+                //artistId = getArguments().getString(ArtistSearchFragment.ARTIST_ID);
+                //GetTracksTask getTracksTask = new GetTracksTask();
+                //getTracksTask.execute(artistId);
             } else {
                 Log.i(LOG_TAG, "No tracks in arguments");
             }
@@ -78,14 +85,14 @@ public class TrackDialogFragment extends Fragment {
         myTracks = bundle.getParcelableArrayList(TRACK_ARRAY_KEY);
         currentTrack = myTracks.get(bundle.getInt(CURRENT_TRACK_POSITION_KEY));
         PlayTrackTask getTracksTask = new PlayTrackTask();
-        getTracksTask.execute(artistId);
+        //getTracksTask.execute(artistId);
     }
-
 
     public class PlayTrackTask extends AsyncTask<String, Void, Void> {
         @Override
         protected Void doInBackground(String... params) {
 
+            return null;
         }
     }
 
