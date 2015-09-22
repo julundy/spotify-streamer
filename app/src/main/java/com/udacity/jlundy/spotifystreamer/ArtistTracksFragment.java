@@ -90,20 +90,20 @@ public class ArtistTracksFragment extends Fragment {
 
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
 
-                TrackDialogFragment fragment = (TrackDialogFragment) fragmentManager.findFragmentByTag(TrackDialogFragment.FRAGMENT_TAG);
+                //TrackDialogFragment fragment = (TrackDialogFragment) fragmentManager.findFragmentByTag(TrackDialogFragment.FRAGMENT_TAG);
 
                 Bundle bundle = new Bundle();
                 bundle.putParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY, mTracksAdapter.tracks);
                 bundle.putInt(TrackDialogFragment.CURRENT_TRACK_POSITION_KEY, position);
 
-                if (fragment == null) {
-                    fragment = new TrackDialogFragment();
-                    fragment.setArguments(bundle);
-                } else {
-                    fragment.updateTrack(bundle);
-                }
+                //if (fragment == null) {
+                //    fragment = new TrackDialogFragment();
+                //    fragment.setArguments(bundle);
+                //} else {
+                //    fragment.updateTrack(bundle);
+                //}
 
-                fragmentManager.beginTransaction().replace(R.id.container, fragment, TrackDialogFragment.FRAGMENT_TAG).addToBackStack(null).commit();
+                //fragmentManager.beginTransaction().replace(R.id.container, fragment, TrackDialogFragment.FRAGMENT_TAG).addToBackStack(null).commit();
             }
         });
 
