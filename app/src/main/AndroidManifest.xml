@@ -27,5 +27,13 @@
                 android:value=".ArtistSearchActivity"
                 android:resource="@xml/searchable"/>
         </activity>
+        <activity
+            android:name=".ArtistTracksActivity"
+            android:label="@string/title_activity_detail"
+            android:parentActivityName=".ArtistSearchActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.udacity.jlundy.spotifystreamer.ArtistSearchActivity" />
+        </activity>
     </application>
 </manifest>

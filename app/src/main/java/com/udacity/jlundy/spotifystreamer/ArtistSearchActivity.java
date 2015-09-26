@@ -15,15 +15,28 @@ public class ArtistSearchActivity extends AppCompatActivity {
 
     private final String LOG_TAG = ArtistSearchActivity.class.getSimpleName();
     public static final String QUERY_STRING = "query_string";
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_artist_search);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ArtistSearchFragment(), ArtistSearchFragment.FRAGMENT_TAG)
-                    .commit();
+        if (findViewById(R.id.tracks_detail_container) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.tracks_detail_container, new ArtistTracksFragment(), ArtistTracksFragment.FRAGMENT_TAG)
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
         }
 
         handleIntent(getIntent());
@@ -88,6 +101,11 @@ public class ArtistSearchActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ArtistSearchFragment artistSearchFragment = (ArtistSearchFragment)getSupportFragmentManager().findFragmentById(R.id.container);
+    }
 
     @Override
     protected void onDestroy() {

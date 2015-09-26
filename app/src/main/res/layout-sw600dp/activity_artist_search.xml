@@ -4,14 +4,13 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     android:baselineAligned="false"
     android:divider="?android:attr/dividerHorizontal"
     tools:context="com.udacity.jlundy.spotifystreamer.ArtistSearchActivity"
     >
 
     <fragment
-        android:id="@+id/fragment_top_tracks"
+        android:id="@+id/container"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"
