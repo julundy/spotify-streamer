@@ -1,13 +1,18 @@
 package com.udacity.jlundy.spotifystreamer;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.ListFragment;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -22,82 +27,106 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 /**
  * Created by jlundy on 7/6/15.
  */
-public class ArtistSearchFragment extends Fragment {
+public class ArtistSearchFragment extends ListFragment {
     private final String LOG_TAG = ArtistSearchFragment.class.getSimpleName();
     static public final String ARTIST_ID = "ARTIST_ID";
     static public final String FRAGMENT_TAG = "ARTIST_SEARCH_FRAGMENT";
+    private int mActivatedPosition = ListView.INVALID_POSITION;
+    private static final String STATE_ACTIVATED_POSITION = "activated_position";
+    /**
+     * The fragment's current callback object, which is notified of list item
+     * clicks.
+     */
+    private Callbacks mCallbacks = sDummyCallbacks;
     ArrayList<MyArtist> myArtists;
 
     ArtistListAdapter mArtistAdapter;
 
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callbacks {
+        /**
+         * Callback for when an item has been selected.
+         */
+        public void onItemSelected(String id);
+    }
+
+    /**
+     * A dummy implementation of the {@link Callbacks} interface that does
+     * nothing. Used only when this fragment is not attached to an activity.
+     */
+    private static Callbacks sDummyCallbacks = new Callbacks() {
+        @Override
+        public void onItemSelected(String id) {
+        }
+    };
+
     public ArtistSearchFragment() {
+        setRetainInstance(true);
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setHasOptionsMenu(false);
+    }
 
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Restore the previously serialized activated item position.
         if (savedInstanceState != null) {
+            Log.i(LOG_TAG, "Using saved instance");
+            //setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
             myArtists = savedInstanceState.getParcelableArrayList("ARTIST_LIST");
+            mArtistAdapter.addAll(myArtists);
+            mArtistAdapter.notifyDataSetChanged();
         } else {
+            Log.i(LOG_TAG, "previous data didn't exists");
             myArtists = new ArrayList<>();
+            mArtistAdapter = new ArtistListAdapter(getActivity(), myArtists);
             if (getArguments() != null) {
+                Log.i(LOG_TAG, "arguments data exists");
                 String query = getArguments().getString("query_string");
                 GetArtistsTask getArtistsTask = new GetArtistsTask();
                 getArtistsTask.execute(query);
             }
         }
+        setListAdapter(mArtistAdapter);
+    }
+
+    /**
+     * Turns on activate-on-click mode. When this mode is on, list items will be
+     * given the 'activated' state when touched.
+     */
+    public void setActivateOnItemClick(boolean activateOnItemClick) {
+        // When setting CHOICE_MODE_SINGLE, ListView will automatically
+        // give items the 'activated' state when touched.
+        getListView().setChoiceMode(activateOnItemClick
+                ? ListView.CHOICE_MODE_SINGLE
+                : ListView.CHOICE_MODE_NONE);
+    }
+
+    private void setActivatedPosition(int position) {
+        if (position == ListView.INVALID_POSITION) {
+            getListView().setItemChecked(mActivatedPosition, false);
+        } else {
+            getListView().setItemChecked(position, true);
+        }
+        mActivatedPosition = position;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public void onListItemClick(ListView listView, View view, int position, long id) {
+        super.onListItemClick(listView, view, position, id);
 
-        View rootView = inflater.inflate(R.layout.fragment_artist_search, container, false);
-
-
-        if (mArtistAdapter == null) {
-            mArtistAdapter = new ArtistListAdapter(getActivity(), myArtists);
-        }
-
-        if (savedInstanceState != null) {
-            myArtists = savedInstanceState.getParcelableArrayList("ARTIST_LIST");
-            mArtistAdapter.addAll(myArtists);
-            mArtistAdapter.notifyDataSetChanged();
-        }
-
-        ListView listView = (ListView) rootView.findViewById(
-                R.id.list_view_results);
-
-        listView.setAdapter(mArtistAdapter);
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MyArtist artist = mArtistAdapter.getItem(position);
-
-                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-
-                ArtistTracksFragment fragment = (ArtistTracksFragment) fragmentManager.findFragmentByTag(ArtistTracksFragment.FRAGMENT_TAG);
-
-                Bundle bundle = new Bundle();
-                bundle.putString(ArtistSearchFragment.ARTIST_ID, artist.getArtistId());
-
-                if (fragment == null) {
-                    fragment = new ArtistTracksFragment();
-                    fragment.setArguments(bundle);
-                } else {
-                    fragment.updateTracks(bundle);
-                }
-
-                fragmentManager.beginTransaction().replace(R.id.container, fragment, ArtistTracksFragment.FRAGMENT_TAG).addToBackStack(null).commit();
-            }
-        });
-
-        return rootView;
+        // Notify the active callbacks interface (the activity, if the
+        // fragment is attached to one) that an item has been selected.
+        MyArtist artist = mArtistAdapter.getItem(position);
+        mCallbacks.onItemSelected(artist.getArtistId());
     }
 
     public void updateArtist(Bundle bundle) {
@@ -145,6 +174,7 @@ public class ArtistSearchFragment extends Fragment {
                 if (artistList.isEmpty()) {
                     Toast.makeText(getActivity(), "No artists found!", Toast.LENGTH_SHORT).show();
                 } else {
+                    Log.i(LOG_TAG, "Artists Found!!");
                     myArtists = artistList;
                     mArtistAdapter.addAll(artistList);
                     mArtistAdapter.notifyDataSetChanged();
@@ -158,7 +188,30 @@ public class ArtistSearchFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
+        if (mActivatedPosition != ListView.INVALID_POSITION) {
+            // Serialize and persist the activated item position.
+            outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
+        }
         outState.putParcelableArrayList("ARTIST_LIST", myArtists);
+        Log.i(LOG_TAG, "Number of items in adapter is: " + Integer.toString(mArtistAdapter.getCount()));
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        // Activities containing this fragment must implement its callbacks.
+        if (!(activity instanceof Callbacks)) {
+            throw new IllegalStateException("Activity must implement fragment's callbacks.");
+        }
+        mCallbacks = (Callbacks) activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        // Reset the active callbacks interface to the dummy implementation.
+        mCallbacks = sDummyCallbacks;
     }
 }

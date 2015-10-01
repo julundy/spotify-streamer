@@ -1,9 +1,9 @@
 package com.udacity.jlundy.spotifystreamer;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,24 +35,24 @@ public class ArtistTracksFragment extends Fragment {
     ArrayList<MyTrack> myTracks;
     TrackListAdapter mTracksAdapter;
 
-    public ArtistTracksFragment() {
-    }
+    public ArtistTracksFragment() { setHasOptionsMenu(false); }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (savedInstanceState != null) {
             myTracks = savedInstanceState.getParcelableArrayList("TRACK_LIST");
         } else {
             if (getArguments() != null) {
                 artistId = getArguments().getString(ArtistSearchFragment.ARTIST_ID);
                 GetTracksTask getTracksTask = new GetTracksTask();
+                Log.i(LOG_TAG, "Artist ID is: " + artistId);
                 getTracksTask.execute(artistId);
             } else {
                 Log.i(LOG_TAG, "No args for songs fragment");
             }
         }
-        setHasOptionsMenu(false);
     }
 
     @Override
@@ -87,8 +87,7 @@ public class ArtistTracksFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Copied over from ArtistSearchFragment
                 MyTrack track = mTracksAdapter.getItem(position);
-
-                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                FragmentManager fragmentManager = getActivity().getFragmentManager();
 
                 //TrackDialogFragment fragment = (TrackDialogFragment) fragmentManager.findFragmentByTag(TrackDialogFragment.FRAGMENT_TAG);
 
