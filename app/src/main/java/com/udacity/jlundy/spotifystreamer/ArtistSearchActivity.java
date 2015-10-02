@@ -85,38 +85,6 @@ public class ArtistSearchActivity extends AppCompatActivity
             tracksIntent.putExtra(ArtistSearchFragment.ARTIST_ID, id);
             startActivity(tracksIntent);
         }
-//
-//                if (fragment == null) {
-//                    fragment = new ArtistTracksFragment();
-//                    fragment.setArguments(bundle);
-//                } else {
-//                    fragment.updateTracks(bundle);
-//                }
-//
-//                //fragmentManager.beginTransaction().replace(R.id.container, fragment, ArtistTracksFragment.FRAGMENT_TAG).addToBackStack(null).commit();
-//
-//                Intent intent = new Intent(getActivity(), ArtistTracksActivity.class).putExtras(bundle);
-//                startActivity(intent);
-//
-//        if (mTwoPane) {
-//            // In two-pane mode, show the detail view in this activity by
-//            // adding or replacing the detail fragment using a
-//            // fragment transaction.
-//            Bundle arguments = new Bundle();
-//            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
-//            ItemDetailFragment fragment = new ItemDetailFragment();
-//            fragment.setArguments(arguments);
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.item_detail_container, fragment)
-//                    .commit();
-//
-//        } else {
-//            // In single-pane mode, simply start the detail activity
-//            // for the selected item ID.
-//            Intent detailIntent = new Intent(this, ItemDetailActivity.class);
-//            detailIntent.putExtra(ItemDetailFragment.ARG_ITEM_ID, id);
-//            startActivity(detailIntent);
-//        }
     }
 
     @Override
@@ -152,7 +120,6 @@ public class ArtistSearchActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        //ArtistSearchFragment artistSearchFragment = (ArtistSearchFragment)getFragmentManager().findFragmentById(R.id.artist_list);
     }
 
     @Override
