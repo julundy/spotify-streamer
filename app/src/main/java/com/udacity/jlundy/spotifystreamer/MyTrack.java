@@ -11,6 +11,24 @@ public class MyTrack implements Parcelable {
     public String albumName;
     public String imageUrl;
     public String trackUrl;
+    public String artistName;
+    public Long duration;
+
+    public Long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Long duration) {
+        this.duration = duration;
+    }
+
+    public String getArtistName() {
+        return artistName;
+    }
+
+    public void setArtistName(String artistName) {
+        this.artistName = artistName;
+    }
 
     public String getTrackUrl() { return trackUrl; }
 
@@ -40,19 +58,23 @@ public class MyTrack implements Parcelable {
         this.imageUrl = imageUrl;
     }
 
-    public MyTrack (String albumName, String trackName, String imageUrl, String trackUrl) {
+    public MyTrack (String artistName, String albumName, String trackName, String imageUrl, String trackUrl, Long duration) {
         super();
+        this.artistName = artistName;
         this.albumName = albumName;
         this.trackName = trackName;
         this.imageUrl = imageUrl;
         this.trackUrl = trackUrl;
+        this.duration = duration;
     }
 
     protected MyTrack(Parcel in) {
+        artistName = in.readString();
         albumName = in.readString();
         trackName = in.readString();
         imageUrl = in.readString();
         trackUrl = in.readString();
+        duration = in.readLong();
     }
 
     public static final Creator<MyTrack> CREATOR = new Creator<MyTrack>() {
@@ -74,9 +96,11 @@ public class MyTrack implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(artistName);
         dest.writeString(albumName);
         dest.writeString(trackName);
         dest.writeString(imageUrl);
         dest.writeString(trackUrl);
+        dest.writeLong(duration);
     }
 }

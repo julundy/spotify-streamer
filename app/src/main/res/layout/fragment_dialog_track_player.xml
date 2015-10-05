@@ -6,21 +6,24 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:gravity="center"
         android:id="@+id/player_artist" />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:gravity="center"
         android:id="@+id/player_album" />
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="10"
+        android:layout_weight="15"
         android:id="@+id/player_image" />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:gravity="center"
         android:id="@+id/player_track" />
     <SeekBar
         android:layout_width="match_parent"
@@ -33,14 +36,18 @@
         android:layout_weight="1"
         android:orientation="horizontal" >
         <TextView
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:gravity="left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:layout_weight="1"
+            android:textAlignment="textStart"
             android:id="@+id/player_current_time"/>
         <TextView
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:gravity="right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:layout_weight="1"
+            android:textAlignment="textEnd"
             android:id="@+id/player_track_length"/>
     </LinearLayout>
     <LinearLayout
@@ -49,19 +56,27 @@
         android:layout_weight="5"
         android:orientation="horizontal">
         <Button
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_marginLeft="20dp"
-            android:layout_marginRight="10dp"/>
+            android:layout_marginRight="10dp"
+            android:id="@+id/player_previous"
+            android:background="@android:drawable/ic_media_previous"/>
         <Button
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"/>
+            android:layout_marginRight="10dp"
+            android:id="@+id/player_play_pause"/>
         <Button
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="20dp"/>
+            android:layout_marginRight="20dp"
+            android:id="@+id/player_next"
+            android:background="@android:drawable/ic_media_next"/>
     </LinearLayout>
 </LinearLayout>

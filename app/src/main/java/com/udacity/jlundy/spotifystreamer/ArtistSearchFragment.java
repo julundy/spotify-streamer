@@ -1,18 +1,10 @@
 package com.udacity.jlundy.spotifystreamer;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.ListFragment;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -79,17 +71,14 @@ public class ArtistSearchFragment extends ListFragment {
         super.onViewCreated(view, savedInstanceState);
         // Restore the previously serialized activated item position.
         if (savedInstanceState != null) {
-            Log.i(LOG_TAG, "Using saved instance");
             //setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
             myArtists = savedInstanceState.getParcelableArrayList("ARTIST_LIST");
             mArtistAdapter.addAll(myArtists);
             mArtistAdapter.notifyDataSetChanged();
         } else {
-            Log.i(LOG_TAG, "previous data didn't exists");
             myArtists = new ArrayList<>();
             mArtistAdapter = new ArtistListAdapter(getActivity(), myArtists);
             if (getArguments() != null) {
-                Log.i(LOG_TAG, "arguments data exists");
                 String query = getArguments().getString("query_string");
                 GetArtistsTask getArtistsTask = new GetArtistsTask();
                 getArtistsTask.execute(query);
@@ -174,7 +163,6 @@ public class ArtistSearchFragment extends ListFragment {
                 if (artistList.isEmpty()) {
                     Toast.makeText(getActivity(), "No artists found!", Toast.LENGTH_SHORT).show();
                 } else {
-                    Log.i(LOG_TAG, "Artists Found!!");
                     myArtists = artistList;
                     mArtistAdapter.addAll(artistList);
                     mArtistAdapter.notifyDataSetChanged();
@@ -193,7 +181,6 @@ public class ArtistSearchFragment extends ListFragment {
             outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
         }
         outState.putParcelableArrayList("ARTIST_LIST", myArtists);
-        Log.i(LOG_TAG, "Number of items in adapter is: " + Integer.toString(mArtistAdapter.getCount()));
     }
 
     @Override

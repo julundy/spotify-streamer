@@ -5,10 +5,8 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SearchView;
@@ -27,14 +25,12 @@ public class ArtistSearchActivity extends AppCompatActivity
         handleIntent(getIntent());
 
         if (findViewById(R.id.tracks_detail_container) != null) {
-            Log.i("ArtistSearchActivity", "This is a tablet!!");
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
             // in two-pane mode.
             mTwoPane = true;
 
         } else {
-            Log.i("ArtistSearchActivity", "This is a phone!!");
             mTwoPane = false;
         }
     }
@@ -51,7 +47,6 @@ public class ArtistSearchActivity extends AppCompatActivity
 
             Bundle args = new Bundle();
             args.putString(QUERY_STRING, query);
-            Log.i(LOG_TAG, "handling intent");
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
 
             ArtistSearchFragment fragment = (ArtistSearchFragment) getFragmentManager().findFragmentByTag(ArtistSearchFragment.FRAGMENT_TAG);
@@ -74,15 +69,16 @@ public class ArtistSearchActivity extends AppCompatActivity
         if (mTwoPane) {
             Bundle bundle = new Bundle();
             bundle.putString(ArtistSearchFragment.ARTIST_ID, id);
+            bundle.putBoolean(ArtistTracksFragment.TWO_PANE, mTwoPane);
             ArtistTracksFragment fragment = new ArtistTracksFragment();
             fragment.setArguments(bundle);
             getFragmentManager().beginTransaction()
                     .replace(R.id.tracks_detail_container, fragment)
                     .commit();
         } else {
-            Log.i(LOG_TAG, "Extras for Activity is: " + id);
             Intent tracksIntent = new Intent(this, ArtistTracksActivity.class);
             tracksIntent.putExtra(ArtistSearchFragment.ARTIST_ID, id);
+            tracksIntent.putExtra(ArtistTracksFragment.TWO_PANE, mTwoPane);
             startActivity(tracksIntent);
         }
     }
