@@ -1,13 +1,19 @@
 package com.udacity.jlundy.spotifystreamer;
 
+import android.app.ActionBar;
 import android.app.DialogFragment;
+import android.app.FragmentManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -73,8 +79,10 @@ public class TrackDialogFragment extends DialogFragment {
                 Log.i(LOG_TAG, "No tracks in arguments");
             }
         }
-        setHasOptionsMenu(false);
+        setHasOptionsMenu(true);
     }
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle bundle) {
@@ -164,7 +172,7 @@ public class TrackDialogFragment extends DialogFragment {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(player != null && fromUser){
+                if (player != null && fromUser) {
                     int currentTime = progress * 1000;
                     player.seekTo(currentTime);
                     currentTimeText.setText(DateFormat.format("mm:ss", currentTime).toString());
@@ -184,7 +192,7 @@ public class TrackDialogFragment extends DialogFragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(player != null){
+                if (player != null) {
                     int mCurrentPosition = player.getCurrentPosition() / 1000;
                     seekBar.setProgress(mCurrentPosition);
                     currentTimeText.setText(DateFormat.format("mm:ss", player.getCurrentPosition()).toString());

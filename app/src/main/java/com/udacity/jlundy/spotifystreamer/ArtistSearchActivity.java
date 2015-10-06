@@ -33,6 +33,7 @@ public class ArtistSearchActivity extends AppCompatActivity
         } else {
             mTwoPane = false;
         }
+
     }
 
     @Override
