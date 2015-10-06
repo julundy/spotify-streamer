@@ -1,19 +1,16 @@
 package com.udacity.jlundy.spotifystreamer;
 
-import android.app.ActionBar;
 import android.app.DialogFragment;
-import android.app.FragmentManager;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.AppCompatActivity;
+import android.os.IBinder;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -23,7 +20,6 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -38,9 +34,12 @@ public class TrackDialogFragment extends DialogFragment {
 
     ArrayList<MyTrack> myTracks;
     MyTrack currentTrack;
-    MediaPlayer player;
+    MediaPlayerService playerService;
     private int currentTrackPosition;
-
+    private boolean isBound = false;
+    private boolean isPaused = true;
+    private boolean isInit = false;
+    private Intent playIntent;
     TextView playerArtist;
     TextView playerAlbum;
     TextView playerTrack;
@@ -61,9 +60,6 @@ public class TrackDialogFragment extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        player = new MediaPlayer();
-
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         //TODO Using this as a template
         if (savedInstanceState != null) {
@@ -101,7 +97,6 @@ public class TrackDialogFragment extends DialogFragment {
         seekBar = (SeekBar) rootView.findViewById(R.id.player_seekbar);
         durationText.setText("00:00");
         currentTimeText.setText("00:00");
-        updateTrack();
 
         return rootView;
     }
@@ -114,22 +109,12 @@ public class TrackDialogFragment extends DialogFragment {
 
         Picasso.with(getActivity().getApplicationContext()).load(currentTrack.getImageUrl()).resize(500, 500)
                 .centerInside().into(playerImage);
-        try {
-            player.setDataSource(currentTrack.trackUrl);
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(LOG_TAG, "No track found!");
-        }
-        player.prepareAsync();
-        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                player.start();
-                String durationString = DateFormat.format("mm:ss", player.getDuration()).toString();
-                durationText.setText(durationString);
-                seekBar.setMax(player.getDuration() / 1000);
-            }
-        });
+        Log.i(LOG_TAG, "Service is null: " + (playerService==null));
+        playerService.setTrack(currentTrackPosition);
+        playerService.playTrack();
+        String durationString = DateFormat.format("mm:ss", playerService.player.getDuration()).toString();
+        durationText.setText(durationString);
+        seekBar.setMax(playerService.player.getDuration() / 1000);
         previousButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -139,7 +124,7 @@ public class TrackDialogFragment extends DialogFragment {
                     currentTrackPosition = myTracks.size() - 1;
                 }
                 currentTrack = myTracks.get(currentTrackPosition);
-                player.reset();
+                playerService.player.reset();
                 updateTrack();
             }
         });
@@ -153,18 +138,18 @@ public class TrackDialogFragment extends DialogFragment {
                     currentTrackPosition = 0;
                 }
                 currentTrack = myTracks.get(currentTrackPosition);
-                player.reset();
+                playerService.player.reset();
                 updateTrack();
             }
         });
         playPauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (player.isPlaying()) {
-                    player.pause();
+                if (playerService.player.isPlaying()) {
+                    playerService.pauseTrack();
                     playPauseButton.setBackgroundResource(android.R.drawable.ic_media_play);
                 } else {
-                    player.start();
+                    playerService.playTrack();
                     playPauseButton.setBackgroundResource(android.R.drawable.ic_media_pause);
                 }
             }
@@ -172,9 +157,9 @@ public class TrackDialogFragment extends DialogFragment {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (player != null && fromUser) {
+                if (playerService != null && fromUser) {
                     int currentTime = progress * 1000;
-                    player.seekTo(currentTime);
+                    playerService.player.seekTo(currentTime);
                     currentTimeText.setText(DateFormat.format("mm:ss", currentTime).toString());
                 }
             }
@@ -192,20 +177,60 @@ public class TrackDialogFragment extends DialogFragment {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (player != null) {
-                    int mCurrentPosition = player.getCurrentPosition() / 1000;
+                if (playerService != null) {
+                    int mCurrentPosition = playerService.player.getCurrentPosition() / 1000;
                     seekBar.setProgress(mCurrentPosition);
-                    currentTimeText.setText(DateFormat.format("mm:ss", player.getCurrentPosition()).toString());
+                    currentTimeText.setText(DateFormat.format("mm:ss", playerService.player.getCurrentPosition()).toString());
                 }
                 mHandler.postDelayed(this, 1000);
             }
         });
     }
 
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MediaPlayerService.MediaBinder mediaPlayerBinder =
+                    (MediaPlayerService.MediaBinder) service;
+            playerService = mediaPlayerBinder.getService();
+            playerService.setList(myTracks);
+            isBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if(playIntent==null) {
+            playIntent = new Intent(getActivity(), MediaPlayerService.class);
+            getActivity().bindService(playIntent, connection, Context.BIND_AUTO_CREATE);
+            getActivity().startService(playIntent);
+            updateTrack();
+
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(isBound){
+            getActivity().unbindService(connection);
+            isBound = false;
+        }
+    }
+
+
     @Override
     public void onDestroy() {
         super.onDestroy();
-        player.release();
-        player = null;
+        getActivity().stopService(playIntent);
+        playerService = null;
     }
 }

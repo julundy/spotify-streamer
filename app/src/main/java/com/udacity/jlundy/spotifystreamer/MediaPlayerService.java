@@ -8,6 +8,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -18,7 +19,7 @@ public class MediaPlayerService extends Service implements
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener,
         MediaPlayer.OnCompletionListener  {
 
-    private MediaPlayer player;
+    public MediaPlayer player;
     private ArrayList<MyTrack> myTracks;
     private int trackPosition;
 
@@ -32,13 +33,14 @@ public class MediaPlayerService extends Service implements
         initMediaPlayer();
     }
 
-    public void initMediaPlayer(){
+    private void initMediaPlayer(){
         player.setWakeMode(getApplicationContext(),
                 PowerManager.PARTIAL_WAKE_LOCK);
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
         player.setOnErrorListener(this);
+        player.prepareAsync();
     }
 
     public void setList(ArrayList<MyTrack> myTracks){
@@ -49,13 +51,44 @@ public class MediaPlayerService extends Service implements
         MediaPlayerService getService() {
             return MediaPlayerService.this;
         }
+
     }
+
+    private final IBinder musicBind = new MediaBinder();
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return musicBind;
     }
+
+    public boolean onUnbind(Intent intent) {
+        player.stop();
+        player.release();
+        return false;
+    }
+
+    public void playTrack() {
+        player.reset();
+        //get track
+        MyTrack playTrack = myTracks.get(trackPosition);
+        try{
+            player.setDataSource(playTrack.trackUrl);
+        }
+        catch(Exception e){
+            Log.e("MUSIC SERVICE", "Error setting data source", e);
+        }
+        player.prepareAsync();
+    }
+
+    public void setTrack(int currentPosition) {
+        trackPosition = currentPosition;
+    }
+
+    public void pauseTrack() {
+        player.pause();
+    }
+
 
     @Override
     public void onCompletion(MediaPlayer mp) {

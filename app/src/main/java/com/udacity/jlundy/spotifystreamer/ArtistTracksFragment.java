@@ -5,10 +5,8 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -83,9 +81,6 @@ public class ArtistTracksFragment extends Fragment {
 
         listView.setAdapter(mTracksAdapter);
 
-        //TODO Set listener for each track to call a dialogue fragment for the track player
-        //TODO Add URL to MyTrack class
-        //TODO use URL to use mediaPlayer in the player dialog
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
