@@ -58,17 +58,18 @@ public class TrackDialogFragment extends DialogFragment {
     public TrackDialogFragment() {
     }
 
-    //TODO Need to implement a service when playing media, to separate from orientation change etc
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //TODO Using this as a template
         if (savedInstanceState != null) {
-
             myTracks = savedInstanceState.getParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY);
-            currentTrackPosition = savedInstanceState.getInt(TrackDialogFragment.CURRENT_TRACK_POSITION_KEY);
+            currentTrackPosition = savedInstanceState.getInt("CURRENT_TRACK_POSITION");
             currentTrack = myTracks.get(currentTrackPosition);
+            currentTime = savedInstanceState.getInt("CURRENT_TIME");
+            Log.i(LOG_TAG, "Current time on saved instance is: " + currentTime +
+                " and current track number is: " + currentTrackPosition);
+
         } else {
             if (getArguments() != null) {
                 myTracks = getArguments().getParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY);
@@ -109,11 +110,15 @@ public class TrackDialogFragment extends DialogFragment {
         playerArtist.setText(currentTrack.getArtistName());
         playerAlbum.setText(currentTrack.getAlbumName());
         playerTrack.setText(currentTrack.getTrackName());
-        //TODO to be used with real track lengths
 
         Picasso.with(getActivity().getApplicationContext()).load(currentTrack.getImageUrl()).resize(500, 500)
                 .centerInside().into(playerImage);
+        Log.i(LOG_TAG, "Updating track position to: " + currentTrackPosition + " with time of: " + currentTime);
         playerService.setTrack(currentTrackPosition);
+        if (currentTime != null) {
+            Log.i(LOG_TAG, "Setting current time");
+            playerService.setPosition(currentTime);
+        }
         playerService.playTrack();
 
         previousButton.setOnClickListener(new View.OnClickListener() {
@@ -126,6 +131,7 @@ public class TrackDialogFragment extends DialogFragment {
                 }
                 currentTrack = myTracks.get(currentTrackPosition);
                 playerService.player.reset();
+                currentTime = 0;
                 updateTrack();
             }
         });
@@ -140,6 +146,7 @@ public class TrackDialogFragment extends DialogFragment {
                 }
                 currentTrack = myTracks.get(currentTrackPosition);
                 playerService.player.reset();
+                currentTime = 0;
                 updateTrack();
             }
         });
@@ -147,9 +154,11 @@ public class TrackDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 if (playerService.player.isPlaying()) {
+                    currentTime = playerService.getPosition();
                     playerService.pauseTrack();
                     playPauseButton.setBackgroundResource(android.R.drawable.ic_media_play);
                 } else {
+                    playerService.setPosition(currentTime);
                     playerService.playTrack();
                     playPauseButton.setBackgroundResource(android.R.drawable.ic_media_pause);
                 }
@@ -159,9 +168,8 @@ public class TrackDialogFragment extends DialogFragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (playerService != null && fromUser) {
-                    int currentTime = progress * 1000;
-                    playerService.player.seekTo(currentTime);
-                    currentTimeText.setText(DateFormat.format("mm:ss", currentTime).toString());
+                    playerService.player.seekTo(progress);
+                    currentTimeText.setText(DateFormat.format("mm:ss", progress).toString());
                 }
             }
 
@@ -180,24 +188,24 @@ public class TrackDialogFragment extends DialogFragment {
             @Override
             public void run() {
 
-                if (isBound == true) { // Check if service bounded
+                if (isBound) { // Check if service bounded
                     if (duration != null) {
                         if (duration == 0) { // Put data in it one time
                             duration = playerService.getDuration();
                         } else {
-                            Log.i(LOG_TAG, "Duration is: " + duration);
                             String durationString = DateFormat.format("mm:ss", duration).toString();
-                            Log.i(LOG_TAG, "formatting duration: " + durationString);
                             seekBar.setMax(duration);
                             durationText.setText(durationString);
                             currentTime = playerService.getPosition();
+                            String currentTimeString = DateFormat.format("mm:ss", currentTime).toString();
                             seekBar.setProgress(currentTime);
+                            currentTimeText.setText(currentTimeString);
                         }
                     } else {
                         duration = playerService.getDuration();
                         Log.i(LOG_TAG, "duration is null");
                     }
-                } else if (isBound == false) { // if service is not bounded log it
+                } else if (!isBound) { // if service is not bounded log it
                     Log.v("Still waiting to bound", Boolean.toString(isBound));
                 }
                 mHandler.postDelayed(this, 1000);
@@ -207,42 +215,6 @@ public class TrackDialogFragment extends DialogFragment {
 
         getActivity().runOnUiThread(musicRunnable);
     }
-
-//        {
-//            @Override
-//            public void run() {
-////                if (playerService != null) {
-////                    int mCurrentPosition = playerService.player.getCurrentPosition() / 1000;
-////                    seekBar.setProgress(mCurrentPosition);
-////                    currentTimeText.setText(DateFormat.format("mm:ss", playerService.player.getCurrentPosition()).toString());
-////                }
-//
-//                if (playerService != null) { // Check if service bounded
-//                    Log.i(LOG_TAG, "RUNNING");
-//                    if (duration == null) { // Put data in it one time
-//                        Log.i(LOG_TAG, "duration is null");
-//                        duration = playerService.getDuration();
-//                        String durationString = DateFormat.format("mm:ss", duration).toString();
-//                        Log.v(LOG_TAG, "Duration of track is: " + durationString);
-//                        durationText.setText(durationString);
-//                        seekBar.setMax(duration);
-//                    } else {
-//                        Log.i(LOG_TAG, "duration is not null");
-//                        currentTime = playerService.getPosition();
-//                        seekBar.setProgress(currentTime);
-//                    }
-//                } else if (isBound == false) { // if service is not bounded log it
-//                    Log.v("Still waiting to bound", Boolean.toString(isBound));
-//                } else {
-//                    Log.e(LOG_TAG, "NOTHINGS HAPPEING");
-//
-//                }
-//                mHandler.postDelayed(this, 1000);
-//            }
-//        });
-//        mHandler.postDelayed()
-//    }
-
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -266,8 +238,8 @@ public class TrackDialogFragment extends DialogFragment {
         super.onStart();
         if(playIntent==null) {
             playIntent = new Intent(getActivity(), MediaPlayerService.class);
-            getActivity().bindService(playIntent, connection, Context.BIND_AUTO_CREATE);
             getActivity().startService(playIntent);
+            getActivity().bindService(playIntent, connection, Context.BIND_AUTO_CREATE);
         }
     }
 
@@ -292,7 +264,9 @@ public class TrackDialogFragment extends DialogFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
+        Log.i(LOG_TAG, "Current time on outstate is: " + currentTime);
+        outState.putInt("CURRENT_TIME", currentTime);
+        outState.putInt("CURRENT_TRACK_POSITION", currentTrackPosition);
         outState.putParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY, myTracks);
     }
 }

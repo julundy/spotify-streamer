@@ -23,6 +23,7 @@ public class MediaPlayerService extends Service implements
     private ArrayList<MyTrack> myTracks;
     private int trackPosition;
     private int duration;
+    private Integer mCurrentTime;
     private final String LOG_TAG = "MEDIA PLAYER SERVICE";
     public MediaPlayerService() {
     }
@@ -72,10 +73,9 @@ public class MediaPlayerService extends Service implements
         player.reset();
         //get track
         MyTrack playTrack = myTracks.get(trackPosition);
-        try{
+        try {
             player.setDataSource(playTrack.trackUrl);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             Log.e("MUSIC SERVICE", "Error setting data source", e);
         }
         player.prepareAsync();
@@ -91,6 +91,10 @@ public class MediaPlayerService extends Service implements
 
     public int getPosition() {
         return player.getCurrentPosition();
+    }
+
+    public void setPosition(int currentTime) {
+        mCurrentTime = currentTime;
     }
 
     public void pauseTrack() {
@@ -112,5 +116,8 @@ public class MediaPlayerService extends Service implements
     public void onPrepared(MediaPlayer mp) {
         duration = player.getDuration();
         mp.start();
+        if (mCurrentTime != null) {
+            mp.seekTo(mCurrentTime);
+        }
     }
 }
