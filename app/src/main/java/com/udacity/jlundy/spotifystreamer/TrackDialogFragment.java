@@ -39,6 +39,8 @@ public class TrackDialogFragment extends DialogFragment {
     private boolean isBound = false;
     private boolean isPaused = true;
     private boolean isInit = false;
+    Integer duration;
+    Integer currentTime;
     private Intent playIntent;
     TextView playerArtist;
     TextView playerAlbum;
@@ -63,6 +65,7 @@ public class TrackDialogFragment extends DialogFragment {
 
         //TODO Using this as a template
         if (savedInstanceState != null) {
+
             myTracks = savedInstanceState.getParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY);
             currentTrackPosition = savedInstanceState.getInt(TrackDialogFragment.CURRENT_TRACK_POSITION_KEY);
             currentTrack = myTracks.get(currentTrackPosition);
@@ -102,6 +105,7 @@ public class TrackDialogFragment extends DialogFragment {
     }
 
     private void updateTrack() {
+        duration = null;
         playerArtist.setText(currentTrack.getArtistName());
         playerAlbum.setText(currentTrack.getAlbumName());
         playerTrack.setText(currentTrack.getTrackName());
@@ -109,12 +113,9 @@ public class TrackDialogFragment extends DialogFragment {
 
         Picasso.with(getActivity().getApplicationContext()).load(currentTrack.getImageUrl()).resize(500, 500)
                 .centerInside().into(playerImage);
-        Log.i(LOG_TAG, "Service is null: " + (playerService==null));
         playerService.setTrack(currentTrackPosition);
         playerService.playTrack();
-        String durationString = DateFormat.format("mm:ss", playerService.player.getDuration()).toString();
-        durationText.setText(durationString);
-        seekBar.setMax(playerService.player.getDuration() / 1000);
+
         previousButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -174,18 +175,73 @@ public class TrackDialogFragment extends DialogFragment {
 
             }
         });
-        getActivity().runOnUiThread(new Runnable() {
+
+        Runnable musicRunnable = new Runnable() {
             @Override
             public void run() {
-                if (playerService != null) {
-                    int mCurrentPosition = playerService.player.getCurrentPosition() / 1000;
-                    seekBar.setProgress(mCurrentPosition);
-                    currentTimeText.setText(DateFormat.format("mm:ss", playerService.player.getCurrentPosition()).toString());
+
+                if (isBound == true) { // Check if service bounded
+                    if (duration != null) {
+                        if (duration == 0) { // Put data in it one time
+                            duration = playerService.getDuration();
+                        } else {
+                            Log.i(LOG_TAG, "Duration is: " + duration);
+                            String durationString = DateFormat.format("mm:ss", duration).toString();
+                            Log.i(LOG_TAG, "formatting duration: " + durationString);
+                            seekBar.setMax(duration);
+                            durationText.setText(durationString);
+                            currentTime = playerService.getPosition();
+                            seekBar.setProgress(currentTime);
+                        }
+                    } else {
+                        duration = playerService.getDuration();
+                        Log.i(LOG_TAG, "duration is null");
+                    }
+                } else if (isBound == false) { // if service is not bounded log it
+                    Log.v("Still waiting to bound", Boolean.toString(isBound));
                 }
                 mHandler.postDelayed(this, 1000);
             }
-        });
+        };
+        mHandler.postDelayed(musicRunnable, 1000);
+
+        getActivity().runOnUiThread(musicRunnable);
     }
+
+//        {
+//            @Override
+//            public void run() {
+////                if (playerService != null) {
+////                    int mCurrentPosition = playerService.player.getCurrentPosition() / 1000;
+////                    seekBar.setProgress(mCurrentPosition);
+////                    currentTimeText.setText(DateFormat.format("mm:ss", playerService.player.getCurrentPosition()).toString());
+////                }
+//
+//                if (playerService != null) { // Check if service bounded
+//                    Log.i(LOG_TAG, "RUNNING");
+//                    if (duration == null) { // Put data in it one time
+//                        Log.i(LOG_TAG, "duration is null");
+//                        duration = playerService.getDuration();
+//                        String durationString = DateFormat.format("mm:ss", duration).toString();
+//                        Log.v(LOG_TAG, "Duration of track is: " + durationString);
+//                        durationText.setText(durationString);
+//                        seekBar.setMax(duration);
+//                    } else {
+//                        Log.i(LOG_TAG, "duration is not null");
+//                        currentTime = playerService.getPosition();
+//                        seekBar.setProgress(currentTime);
+//                    }
+//                } else if (isBound == false) { // if service is not bounded log it
+//                    Log.v("Still waiting to bound", Boolean.toString(isBound));
+//                } else {
+//                    Log.e(LOG_TAG, "NOTHINGS HAPPEING");
+//
+//                }
+//                mHandler.postDelayed(this, 1000);
+//            }
+//        });
+//        mHandler.postDelayed()
+//    }
 
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -196,6 +252,7 @@ public class TrackDialogFragment extends DialogFragment {
             playerService = mediaPlayerBinder.getService();
             playerService.setList(myTracks);
             isBound = true;
+            updateTrack();
         }
 
         @Override
@@ -207,13 +264,10 @@ public class TrackDialogFragment extends DialogFragment {
     @Override
     public void onStart() {
         super.onStart();
-
         if(playIntent==null) {
             playIntent = new Intent(getActivity(), MediaPlayerService.class);
             getActivity().bindService(playIntent, connection, Context.BIND_AUTO_CREATE);
             getActivity().startService(playIntent);
-            updateTrack();
-
         }
     }
 
@@ -229,8 +283,16 @@ public class TrackDialogFragment extends DialogFragment {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         getActivity().stopService(playIntent);
         playerService = null;
+        super.onDestroy();
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelableArrayList(TrackDialogFragment.TRACK_ARRAY_KEY, myTracks);
     }
 }

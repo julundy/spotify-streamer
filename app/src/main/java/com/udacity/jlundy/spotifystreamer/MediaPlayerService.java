@@ -22,7 +22,8 @@ public class MediaPlayerService extends Service implements
     public MediaPlayer player;
     private ArrayList<MyTrack> myTracks;
     private int trackPosition;
-
+    private int duration;
+    private final String LOG_TAG = "MEDIA PLAYER SERVICE";
     public MediaPlayerService() {
     }
 
@@ -40,7 +41,6 @@ public class MediaPlayerService extends Service implements
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
         player.setOnErrorListener(this);
-        player.prepareAsync();
     }
 
     public void setList(ArrayList<MyTrack> myTracks){
@@ -85,6 +85,14 @@ public class MediaPlayerService extends Service implements
         trackPosition = currentPosition;
     }
 
+    public int getDuration() {
+        return duration;
+    }
+
+    public int getPosition() {
+        return player.getCurrentPosition();
+    }
+
     public void pauseTrack() {
         player.pause();
     }
@@ -102,6 +110,7 @@ public class MediaPlayerService extends Service implements
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        duration = player.getDuration();
         mp.start();
     }
 }
